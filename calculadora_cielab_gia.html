@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora CIELAB</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom Scrollbar for tables */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-rose-600 rounded-lg text-white shadow-md">
+                    <i data-lucide="wine" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">Esc. 4044 CASALE - prof.: Ing. Pablo Martinez</h1>
+                    <p class="text-xs text-slate-400">Análisis Espectrofotométrico (CIELAB) & Clasificación INV / OIV</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-slate-300 font-medium">CIE D65 / Observador 10°</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- LEFT PANEL: Data Input & Preset Selector (5 Cols) -->
+            <section class="lg:col-span-5 space-y-6">
+                
+                <!-- Card: Data Entry -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-rose-600"></i>
+                            Entrada de Datos
+                        </h2>
+                        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">Espectro Visible</span>
+                    </div>
+
+                    <!-- Presets Selector -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                            Cargar Muestra de Ejemplo
+                        </label>
+                        <select id="presetSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-rose-500 focus:border-rose-500 p-2.5 transition">
+                            <option value="">-- Seleccionar un perfil típico --</option>
+                            <option value="rose_criolla">Vino Rosado de Criolla & Moscatel (Típico)</option>
+                            <option value="blanco_torrontes">Vino Blanco Joven (Torrontés)</option>
+                            <option value="naranjo_macerado">Vino Naranjo / Orange Wine (Criolla Macerada)</option>
+                            <option value="tinto_malbec">Vino Tinto Joven (Malbec / Syrah)</option>
+                        </select>
+                    </div>
+
+                    <!-- Mode Toggle & Pathlength Settings -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                                Formato de Entrada
+                            </label>
+                            <select id="dataTypeSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-rose-500 focus:border-rose-500 p-2.5 transition">
+                                <option value="T_pct">Transmitancia (%T)</option>
+                                <option value="T_frac">Transmitancia (Fracción 0-1)</option>
+                                <option value="Abs">Absorbancia (A)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                                Paso Óptico (Cubeta)
+                            </label>
+                            <select id="pathlengthSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-rose-500 focus:border-rose-500 p-2.5 transition">
+                                <option value="10">10 mm (1 cm) - Estándar</option>
+                                <option value="2">2 mm (0.2 cm)</option>
+                                <option value="1">1 mm (0.1 cm)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Text Area for CSV / Raw Data Paste -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="dataInput" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                Pegar Datos ($\lambda$ vs Valor)
+                            </label>
+                            <span class="text-xs text-slate-400">Separado por coma, tab o espacio</span>
+                        </div>
+                        <textarea id="dataInput" rows="10" placeholder="Ejemplo:&#10;380, 95.2&#10;385, 94.8&#10;390, 94.1&#10;...&#10;780, 98.5" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-mono rounded-xl p-3 focus:ring-rose-500 focus:border-rose-500 transition custom-scrollbar"></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-2">
+                        <button id="calculateBtn" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm py-3 px-4 rounded-xl shadow-sm hover:shadow transition flex justify-center items-center gap-2">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                            Calcular Color
+                        </button>
+                        <button id="clearBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm py-3 px-4 rounded-xl transition flex justify-center items-center gap-2">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Limpiar
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Info Box: Standard CIE Reference -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-3 shadow-sm">
+                    <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                    <div class="space-y-1">
+                        <p class="font-semibold">Estándares enológicos aplicados:</p>
+                        <p class="text-amber-800 leading-relaxed">Integración Riemann con iluminación estándar <strong>D65</strong> y observador de <strong>10°</strong> (CIE 1964). Normalización automática de paso óptico a 1 cm según OIV-MA-AS2-11.</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- RIGHT PANEL: Results & Color Preview (7 Cols) -->
+            <section class="lg:col-span-7 space-y-6">
+
+                <!-- Color Swatch & INV Classification Banner -->
+                <div id="resultCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                    
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="palette" class="w-5 h-5 text-rose-600"></i>
+                            Muestra & Clasificación Enológica
+                        </h2>
+                        <span id="dataPointsCount" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">0 puntos cargados</span>
+                    </div>
+
+                    <!-- Visual Color Preview Block -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                        <!-- Color Box -->
+                        <div class="md:col-span-5 flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                            <div id="colorPreviewBox" class="w-32 h-32 rounded-full border-4 border-white shadow-lg transition-all duration-300 relative flex items-center justify-center" style="background-color: #f1f5f9;">
+                                <span id="colorHexLabel" class="text-xs font-mono font-bold bg-black/40 text-white px-2 py-1 rounded backdrop-blur-sm opacity-0 transition-opacity">#------</span>
+                            </div>
+                            <span class="text-xs text-slate-500 font-medium mt-3">Color Percibido Estimado (sRGB)</span>
+                        </div>
+
+                        <!-- INV Classification Text Box -->
+                        <div class="md:col-span-7 space-y-3">
+                            <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Dictamen / Categoría Estimada INV</div>
+                            <div id="invCategoryBadge" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                Sin datos suficientes
+                            </div>
+                            <p id="invCategoryDescription" class="text-xs text-slate-600 leading-relaxed">
+                                Ingrese o seleccione una serie espectral válida de transmitancia o absorbancia entre 380 nm y 780 nm para calcular la clasificación oficial.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CIELAB Metric Cards Grid -->
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Coordenadas del Espacio Tridimensional CIELAB</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                                <span class="text-xs text-slate-500 font-medium block">L* (Luminosidad)</span>
+                                <span id="valL" class="text-lg font-bold text-slate-900 font-mono">--</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">0 (Negro) - 100 (Blanco)</span>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                                <span class="text-xs text-slate-500 font-medium block">a* (Eje Verde-Rojo)</span>
+                                <span id="valA" class="text-lg font-bold text-rose-600 font-mono">--</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">+ Rojo / - Verde</span>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                                <span class="text-xs text-slate-500 font-medium block">b* (Eje Azul-Amarillo)</span>
+                                <span id="valB" class="text-lg font-bold text-amber-600 font-mono">--</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">+ Amarillo / - Azul</span>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                                <span class="text-xs text-slate-500 font-medium block">C* (Croma / Croma)</span>
+                                <span id="valC" class="text-lg font-bold text-slate-900 font-mono">--</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">Saturación del color</span>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center col-span-2 sm:col-span-1">
+                                <span class="text-xs text-slate-500 font-medium block">h_ab (Tono)</span>
+                                <span id="valH" class="text-lg font-bold text-slate-900 font-mono">--</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">Ángulo en grados (°)</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Classical Enological Parameters Grid (IC, Tonalidad, %Amarillo, %Rojo, %Azul) -->
+                    <div>
+                        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Parámetros Enológicos Clásicos (Método Sudraud / Glories)</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            
+                            <div class="bg-rose-50/50 border border-rose-100 p-3.5 rounded-xl">
+                                <span class="text-xs text-rose-800 font-semibold block">Intensidad Colorante (IC)</span>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span id="valIC" class="text-xl font-bold text-rose-900 font-mono">--</span>
+                                    <span class="text-[10px] text-rose-600">A420 + A520 + A620</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50/50 border border-amber-100 p-3.5 rounded-xl">
+                                <span class="text-xs text-amber-800 font-semibold block">Tonalidad / Matiz (N)</span>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span id="valMatiz" class="text-xl font-bold text-amber-900 font-mono">--</span>
+                                    <span class="text-[10px] text-amber-600">A420 / A520</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl col-span-2 sm:col-span-1">
+                                <span class="text-xs text-slate-600 font-semibold block">Valores Triestímulos XYZ</span>
+                                <div id="valXYZ" class="text-xs font-mono text-slate-700 mt-1">
+                                    X: -- | Y: -- | Z: --
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- % Yellow, Red, Blue composition bar -->
+                        <div class="mt-4 space-y-2">
+                            <div class="flex justify-between text-xs font-medium text-slate-600">
+                                <span>Composición del Color Absorbido:</span>
+                                <span id="compLabel">0% Amar / 0% Roj / 0% Azul</span>
+                            </div>
+                            <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                                <div id="barYellow" class="h-full bg-amber-400 transition-all duration-300" style="width: 33.3%;"></div>
+                                <div id="barRed" class="h-full bg-rose-500 transition-all duration-300" style="width: 33.3%;"></div>
+                                <div id="barBlue" class="h-full bg-indigo-500 transition-all duration-300" style="width: 33.4%;"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-400 px-1">
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> %Amarillo (420 nm)</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> %Rojo (520 nm)</span>
+                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> %Azul (620 nm)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 text-xs py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <p class="font-medium text-slate-300">Herramienta de Análisis Espectrofotométrico Enológico</p>
+                <p class="text-slate-500 text-[11px] mt-0.5">Basado en metodologías OIV (OIV-MA-AS2-11) y normativas del Instituto Nacional de Vitivinicultura (INV Argentina).</p>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+                Desarrollado para evaluación de Vinos Rosados, Blancos, Naranjos y Tintos.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // --------------------------------------------------------------------------
+        // TABLA OFICIAL CIE D65 & OBSERVADOR 10° (1964) DE 380nm A 780nm (Paso 5nm)
+        // --------------------------------------------------------------------------
+        const CIE_TABLE_5NM = [
+            { nm: 380, S: 49.9985, x: 0.00016, y: 0.00002, z: 0.00072 },
+            { nm: 385, S: 52.3113, x: 0.00052, y: 0.00005, z: 0.00236 },
+            { nm: 390, S: 54.6482, x: 0.00162, y: 0.00016, z: 0.00742 },
+            { nm: 395, S: 68.7015, x: 0.00508, y: 0.00050, z: 0.02338 },
+            { nm: 400, S: 82.7549, x: 0.01911, y: 0.00200, z: 0.08601 },
+            { nm: 405, S: 87.1204, x: 0.04312, y: 0.00451, z: 0.19412 },
+            { nm: 410, S: 91.4860, x: 0.08474, y: 0.00876, z: 0.38221 },
+            { nm: 415, S: 92.4588, x: 0.14064, y: 0.01445, z: 0.63849 },
+            { nm: 420, S: 93.4318, x: 0.20449, y: 0.02139, z: 0.93503 },
+            { nm: 425, S: 90.0570, x: 0.26474, y: 0.02868, z: 1.22223 },
+            { nm: 430, S: 86.6823, x: 0.31468, y: 0.03628, z: 1.46850 },
+            { nm: 435, S: 95.7736, x: 0.35772, y: 0.04443, z: 1.69259 },
+            { nm: 440, S: 104.865, x: 0.38373, y: 0.05208, z: 1.84277 },
+            { nm: 445, S: 110.936, x: 0.38673, y: 0.05942, z: 1.88085 },
+            { nm: 450, S: 117.008, x: 0.37070, y: 0.06641, z: 1.83220 },
+            { nm: 455, S: 117.410, x: 0.34296, y: 0.07466, z: 1.72081 },
+            { nm: 460, S: 117.812, x: 0.30227, y: 0.08228, z: 1.54181 },
+            { nm: 465, S: 116.336, x: 0.25409, y: 0.09150, z: 1.32833 },
+            { nm: 470, S: 114.861, x: 0.19562, y: 0.10091, z: 1.05001 },
+            { nm: 475, S: 115.392, x: 0.13235, y: 0.11308, z: 0.74152 },
+            { nm: 480, S: 115.923, x: 0.08051, y: 0.12816, z: 0.47281 },
+            { nm: 485, S: 112.367, x: 0.04107, y: 0.14716, z: 0.27083 },
+            { nm: 490, S: 108.811, x: 0.01617, y: 0.17066, z: 0.13451 },
+            { nm: 495, S: 109.082, x: 0.00513, y: 0.20452, z: 0.05837 },
+            { nm: 500, S: 109.354, x: 0.00380, y: 0.25110, z: 0.02230 },
+            { nm: 505, S: 108.578, x: 0.01500, y: 0.31215, z: 0.00820 },
+            { nm: 510, S: 107.802, x: 0.03746, y: 0.38720, z: 0.00250 },
+            { nm: 515, S: 106.296, x: 0.07136, y: 0.47396, z: 0.00079 },
+            { nm: 520, S: 104.790, x: 0.11775, y: 0.56740, z: 0.00021 },
+            { nm: 525, S: 106.239, x: 0.17695, y: 0.66228, z: 0.00006 },
+            { nm: 530, S: 107.689, x: 0.24823, y: 0.75420, z: 0.00000 },
+            { nm: 535, S: 106.047, x: 0.33121, y: 0.83582, z: 0.00000 },
+            { nm: 540, S: 104.405, x: 0.42431, y: 0.90040, z: 0.00000 },
+            { nm: 545, S: 102.228, x: 0.52501, y: 0.94721, z: 0.00000 },
+            { nm: 550, S: 100.050, x: 0.63098, y: 0.97320, z: 0.00000 },
+            { nm: 555, S: 98.8812, x: 0.73836, y: 0.97860, z: 0.00000 },
+            { nm: 560, S: 97.7122, x: 0.84277, y: 0.95870, z: 0.00000 },
+            { nm: 565, S: 98.5173, x: 0.93881, y: 0.91685, z: 0.00000 },
+            { nm: 570, S: 99.3225, x: 1.02080, y: 0.85630, z: 0.00000 },
+            { nm: 575, S: 98.2081, x: 1.08156, y: 0.78119, z: 0.00000 },
+            { nm: 580, S: 97.0936, x: 1.11816, y: 0.69820, z: 0.00000 },
+            { nm: 585, S: 92.5762, x: 1.12984, y: 0.61282, z: 0.00000 },
+            { nm: 590, S: 88.0588, x: 1.11351, y: 0.52800, z: 0.00000 },
+            { nm: 595, S: 89.0270, x: 1.06649, y: 0.44682, z: 0.00000 },
+            { nm: 600, S: 89.9953, x: 0.99402, y: 0.37010, z: 0.00000 },
+            { nm: 605, S: 88.8541, x: 0.89886, y: 0.30008, z: 0.00000 },
+            { nm: 610, S: 87.7129, x: 0.78833, y: 0.23810, z: 0.00000 },
+            { nm: 615, S: 85.4947, x: 0.66981, y: 0.18494, z: 0.00000 },
+            { nm: 620, S: 83.2765, x: 0.55010, y: 0.14000, z: 0.00000 },
+            { nm: 625, S: 83.4939, x: 0.43503, y: 0.10324, z: 0.00000 },
+            { nm: 630, S: 83.7113, x: 0.33291, y: 0.07570, z: 0.00000 },
+            { nm: 635, S: 81.8985, x: 0.24528, y: 0.05436, z: 0.00000 },
+            { nm: 640, S: 80.0858, x: 0.17352, y: 0.03800, z: 0.00000 },
+            { nm: 645, S: 80.1504, x: 0.11977, y: 0.02600, z: 0.00000 },
+            { nm: 650, S: 80.2150, x: 0.08144, y: 0.01750, z: 0.00000 },
+            { nm: 655, S: 81.2458, x: 0.05432, y: 0.01159, z: 0.00000 },
+            { nm: 660, S: 82.2766, x: 0.03561, y: 0.00757, z: 0.00000 },
+            { nm: 665, S: 80.2818, x: 0.02293, y: 0.00485, z: 0.00000 },
+            { nm: 670, S: 78.2870, x: 0.01452, y: 0.00306, z: 0.00000 },
+            { nm: 675, S: 75.2427, x: 0.00909, y: 0.00191, z: 0.00000 },
+            { nm: 680, S: 72.1985, x: 0.00557, y: 0.00117, z: 0.00000 },
+            { nm: 685, S: 67.0427, x: 0.00336, y: 0.00070, z: 0.00000 },
+            { nm: 690, S: 61.8868, x: 0.00200, y: 0.00042, z: 0.00000 },
+            { nm: 695, S: 61.9284, x: 0.00118, y: 0.00025, z: 0.00000 },
+            { nm: 700, S: 61.9700, x: 0.00069, y: 0.00014, z: 0.00000 },
+            { nm: 705, S: 58.4908, x: 0.00040, y: 0.00008, z: 0.00000 },
+            { nm: 710, S: 55.0116, x: 0.00023, y: 0.00005, z: 0.00000 },
+            { nm: 715, S: 52.9554, x: 0.00013, y: 0.00003, z: 0.00000 },
+            { nm: 720, S: 50.8992, x: 0.00008, y: 0.00002, z: 0.00000 },
+            { nm: 725, S: 49.6015, x: 0.00004, y: 0.00001, z: 0.00000 },
+            { nm: 730, S: 48.3038, x: 0.00002, y: 0.00001, z: 0.00000 },
+            { nm: 735, S: 46.5982, x: 0.00001, y: 0.00000, z: 0.00000 },
+            { nm: 740, S: 44.8927, x: 0.00001, y: 0.00000, z: 0.00000 },
+            { nm: 745, S: 45.6980, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 750, S: 46.5033, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 755, S: 48.2281, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 760, S: 49.9529, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 765, S: 52.2222, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 770, S: 54.4915, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 775, S: 50.9821, x: 0.00000, y: 0.00000, z: 0.00000 },
+            { nm: 780, S: 47.4727, x: 0.00000, y: 0.00000, z: 0.00000 }
+        ];
+
+        // --------------------------------------------------------------------------
+        // PRESETS DE EJEMPLO DE VINOS REALES (% Transmitancia en Cubeta de 1cm)
+        // --------------------------------------------------------------------------
+        const PRESETS = {
+            rose_criolla: generatePresetRose(),
+            blanco_torrontes: generatePresetWhite(),
+            naranjo_macerado: generatePresetOrange(),
+            tinto_malbec: generatePresetRed()
+        };
+
+        function generatePresetRose() {
+            // Rosado pálido / piel de cebolla (Criolla + Moscatel con breve maceración)
+            let str = "";
+            for (let w = 380; w <= 780; w += 10) {
+                let T = 0;
+                if (w < 420) T = 15 + (w - 380) * 0.5;
+                else if (w < 520) T = 35 + (w - 420) * 0.15; // Absorbencia ligera en 520
+                else if (w < 600) T = 50 + (w - 520) * 0.5;
+                else T = 90 + (w - 600) * 0.04;
+                if (T > 98) T = 98;
+                str += `${w}, ${T.toFixed(1)}\n`;
+            }
+            return str;
+        }
+
+        function generatePresetWhite() {
+            // Blanco limpio brillante con reflejos dorados leves
+            let str = "";
+            for (let w = 380; w <= 780; w += 10) {
+                let T = 0;
+                if (w < 420) T = 55 + (w - 380) * 0.8;
+                else T = 87 + (w - 420) * 0.03;
+                if (T > 99) T = 99;
+                str += `${w}, ${T.toFixed(1)}\n`;
+            }
+            return str;
+        }
+
+        function generatePresetOrange() {
+            // Vino Naranjo (Maceración prolongada de uva blanca/criolla: alta absorción azul/420)
+            let str = "";
+            for (let w = 380; w <= 780; w += 10) {
+                let T = 0;
+                if (w < 450) T = 5 + (w - 380) * 0.2;
+                else if (w < 550) T = 19 + (w - 450) * 0.5;
+                else if (w < 650) T = 69 + (w - 550) * 0.25;
+                else T = 94;
+                if (T > 98) T = 98;
+                str += `${w}, ${T.toFixed(1)}\n`;
+            }
+            return str;
+        }
+
+        function generatePresetRed() {
+            // Vino Tinto Joven de intensidad media
+            let str = "";
+            for (let w = 380; w <= 780; w += 10) {
+                let T = 0;
+                if (w < 450) T = 0.5;
+                else if (w < 580) T = 0.2 + (w - 450) * 0.02; // Gran absorción de verde/amarillo
+                else if (w < 650) T = 3.0 + Math.pow((w - 580) / 70, 2) * 50;
+                else T = 75 + (w - 650) * 0.15;
+                if (T > 96) T = 96;
+                str += `${w}, ${T.toFixed(2)}\n`;
+            }
+            return str;
+        }
+
+        // --------------------------------------------------------------------------
+        // ELEMENTOS DEL DOM
+        // --------------------------------------------------------------------------
+        const dataInput = document.getElementById('dataInput');
+        const dataTypeSelect = document.getElementById('dataTypeSelect');
+        const pathlengthSelect = document.getElementById('pathlengthSelect');
+        const presetSelect = document.getElementById('presetSelect');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Output Labels
+        const valL = document.getElementById('valL');
+        const valA = document.getElementById('valA');
+        const valB = document.getElementById('valB');
+        const valC = document.getElementById('valC');
+        const valH = document.getElementById('valH');
+
+        const valIC = document.getElementById('valIC');
+        const valMatiz = document.getElementById('valMatiz');
+        const valXYZ = document.getElementById('valXYZ');
+
+        const barYellow = document.getElementById('barYellow');
+        const barRed = document.getElementById('barRed');
+        const barBlue = document.getElementById('barBlue');
+        const compLabel = document.getElementById('compLabel');
+
+        const colorPreviewBox = document.getElementById('colorPreviewBox');
+        const colorHexLabel = document.getElementById('colorHexLabel');
+
+        const invCategoryBadge = document.getElementById('invCategoryBadge');
+        const invCategoryDescription = document.getElementById('invCategoryDescription');
+        const dataPointsCount = document.getElementById('dataPointsCount');
+
+        // --------------------------------------------------------------------------
+        // EVENT LISTENERS
+        // --------------------------------------------------------------------------
+        presetSelect.addEventListener('change', (e) => {
+            const key = e.target.value;
+            if (key && PRESETS[key]) {
+                dataInput.value = PRESETS[key];
+                dataTypeSelect.value = 'T_pct';
+                pathlengthSelect.value = '10';
+                processDataAndCalculate();
+            }
+        });
+
+        calculateBtn.addEventListener('click', () => {
+            processDataAndCalculate();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            dataInput.value = '';
+            presetSelect.value = '';
+            resetResults();
+        });
+
+        // Autocalcular en cambio de selectores si hay datos
+        dataTypeSelect.addEventListener('change', () => { if (dataInput.value.trim()) processDataAndCalculate(); });
+        pathlengthSelect.addEventListener('change', () => { if (dataInput.value.trim()) processDataAndCalculate(); });
+
+        // Auto-carga inicial
+        dataInput.value = PRESETS.rose_criolla;
+        presetSelect.value = 'rose_criolla';
+        processDataAndCalculate();
+
+        // --------------------------------------------------------------------------
+        // MOTOR MATEMÁTICO & CÁLCULOS
+        // --------------------------------------------------------------------------
+
+        function processDataAndCalculate() {
+            const rawText = dataInput.value.trim();
+            if (!rawText) {
+                resetResults();
+                return;
+            }
+
+            // 1. Parsear datos de entrada
+            const lines = rawText.split('\n');
+            const parsedSpectrum = [];
+
+            lines.forEach(line => {
+                const parts = line.trim().split(/[\s,\t]+/);
+                if (parts.length >= 2) {
+                    const wave = parseFloat(parts[0]);
+                    const val = parseFloat(parts[1]);
+                    if (!isNaN(wave) && !isNaN(val)) {
+                        parsedSpectrum.push({ nm: wave, val: val });
+                    }
+                }
+            });
+
+            if (parsedSpectrum.length < 3) {
+                alert("Por favor ingresa al menos 3 puntos de longitud de onda y transmitancia/absorbancia.");
+                return;
+            }
+
+            // Ordenar por nm
+            parsedSpectrum.sort((a, b) => a.nm - b.nm);
+            dataPointsCount.textContent = `${parsedSpectrum.length} puntos (${parsedSpectrum[0].nm}nm - ${parsedSpectrum[parsedSpectrum.length - 1].nm}nm)`;
+
+            const dataType = dataTypeSelect.value;
+            const cellPathMm = parseFloat(pathlengthSelect.value); // 10, 2, 1 mm
+
+            // Convertir todo a Absorbancia estandarizada a cubeta de 1cm (10mm) y Transmitancia T (0 a 1)
+            const standardizedSpectrum = parsedSpectrum.map(p => {
+                let abs1cm = 0;
+                let tFrac1cm = 1;
+
+                if (dataType === 'Abs') {
+                    // Si la lectura es Absorbancia en cubeta de X mm, escalar a 10 mm (1 cm)
+                    abs1cm = p.val * (10 / cellPathMm);
+                    tFrac1cm = Math.pow(10, -abs1cm);
+                } else if (dataType === 'T_pct') {
+                    let tFracMeasured = p.val / 100.0;
+                    if (tFracMeasured <= 0) tFracMeasured = 0.000001;
+                    let absMeasured = -Math.log10(tFracMeasured);
+                    abs1cm = absMeasured * (10 / cellPathMm);
+                    tFrac1cm = Math.pow(10, -abs1cm);
+                } else if (dataType === 'T_frac') {
+                    let tFracMeasured = p.val;
+                    if (tFracMeasured <= 0) tFracMeasured = 0.000001;
+                    let absMeasured = -Math.log10(tFracMeasured);
+                    abs1cm = absMeasured * (10 / cellPathMm);
+                    tFrac1cm = Math.pow(10, -abs1cm);
+                }
+
+                // Clamping
+                if (tFrac1cm > 1) tFrac1cm = 1;
+                if (tFrac1cm < 0) tFrac1cm = 0;
+
+                return { nm: p.nm, abs1cm: abs1cm, tFrac: tFrac1cm };
+            });
+
+            // 2. Interpolar transmitancia en los puntos estándar de CIE_TABLE_5NM (380 a 780)
+            let sumX = 0, sumY = 0, sumZ = 0;
+            let sumK = 0;
+
+            // Se calcula con integración Riemann
+            const deltaLam = 5; // intervalo fijo de la tabla de referencia
+
+            CIE_TABLE_5NM.forEach(cie => {
+                // Interpolar transmitancia T en cie.nm a partir de standardizedSpectrum
+                const tInterpolated = interpolateTransmittance(cie.nm, standardizedSpectrum);
+                
+                sumX += cie.S * cie.x * tInterpolated * deltaLam;
+                sumY += cie.S * cie.y * tInterpolated * deltaLam;
+                sumZ += cie.S * cie.z * tInterpolated * deltaLam;
+
+                sumK += cie.S * cie.y * deltaLam;
+            });
+
+            const k = 100.0 / sumK;
+
+            const X = sumX * k;
+            const Y = sumY * k;
+            const Z = sumZ * k;
+
+            // 3. Conversión XYZ -> CIELAB (D65 / Observador 10°)
+            // Referencia del blanco perfecto Xn, Yn, Zn para D65 / 10°
+            const Xn = 94.811;
+            const Yn = 100.000;
+            const Zn = 107.304;
+
+            const fx = fCIELAB(X / Xn);
+            const fy = fCIELAB(Y / Yn);
+            const fz = fCIELAB(Z / Zn);
+
+            const L = 116.0 * fy - 16.0;
+            const a = 500.0 * (fx - fy);
+            const b = 200.0 * (fy - fz);
+
+            // Croma y Tono (Hue angle en grados)
+            const C = Math.sqrt(a * a + b * b);
+            let hRad = Math.atan2(b, a);
+            let hDeg = hRad * (180.0 / Math.PI);
+            if (hDeg < 0) hDeg += 360.0;
+
+            // 4. Parámetros Enológicos Clásicos (A420, A520, A620)
+            const A420 = getAbsAtWavelength(420, standardizedSpectrum);
+            const A520 = getAbsAtWavelength(520, standardizedSpectrum);
+            const A620 = getAbsAtWavelength(620, standardizedSpectrum);
+
+            const IC = A420 + A520 + A620;
+            const matiz = A520 > 0 ? (A420 / A520) : 0;
+
+            let pctYellow = 0, pctRed = 0, pctBlue = 0;
+            if (IC > 0) {
+                pctYellow = (A420 / IC) * 100.0;
+                pctRed = (A520 / IC) * 100.0;
+                pctBlue = (A620 / IC) * 100.0;
+            }
+
+            // 5. Generar color sRGB aproximado para el swatch visual
+            const rgbHex = xyzToHexSRGB(X, Y, Z);
+
+            // 6. Actualizar Interfaz de Usuario
+            renderResults({
+                L, a, b, C, hDeg,
+                X, Y, Z,
+                IC, matiz,
+                pctYellow, pctRed, pctBlue,
+                rgbHex,
+                A420, A520, A620
+            });
+        }
+
+        // Función auxiliar f(t) para la conversión CIELAB
+        function fCIELAB(t) {
+            const delta = 6.0 / 29.0;
+            if (t > Math.pow(delta, 3)) {
+                return Math.cbrt(t);
+            } else {
+                return (t / (3.0 * delta * delta)) + (4.0 / 29.0);
+            }
+        }
+
+        // Interpolación lineal de Transmitancia
+        function interpolateTransmittance(targetNm, spectrum) {
+            if (targetNm <= spectrum[0].nm) return spectrum[0].tFrac;
+            if (targetNm >= spectrum[spectrum.length - 1].nm) return spectrum[spectrum.length - 1].tFrac;
+
+            for (let i = 0; i < spectrum.length - 1; i++) {
+                if (targetNm >= spectrum[i].nm && targetNm <= spectrum[i + 1].nm) {
+                    const frac = (targetNm - spectrum[i].nm) / (spectrum[i + 1].nm - spectrum[i].nm);
+                    return spectrum[i].tFrac + frac * (spectrum[i + 1].tFrac - spectrum[i].tFrac);
+                }
+            }
+            return 1.0;
+        }
+
+        // Obtención de Absorbancia en longitud de onda específica
+        function getAbsAtWavelength(targetNm, spectrum) {
+            if (targetNm <= spectrum[0].nm) return spectrum[0].abs1cm;
+            if (targetNm >= spectrum[spectrum.length - 1].nm) return spectrum[spectrum.length - 1].abs1cm;
+
+            for (let i = 0; i < spectrum.length - 1; i++) {
+                if (targetNm >= spectrum[i].nm && targetNm <= spectrum[i + 1].nm) {
+                    const frac = (targetNm - spectrum[i].nm) / (spectrum[i + 1].nm - spectrum[i].nm);
+                    return spectrum[i].abs1cm + frac * (spectrum[i + 1].abs1cm - spectrum[i].abs1cm);
+                }
+            }
+            return 0.0;
+        }
+
+        // Conversion XYZ -> sRGB con adaptación cromática y Gamma correction
+        function xyzToHexSRGB(X, Y, Z) {
+            // Normalizar a 0..1
+            let x = X / 100.0;
+            let y = Y / 100.0;
+            let z = Z / 100.0;
+
+            // Matriz D65 a sRGB
+            let rLinear =  3.2406 * x - 1.5372 * y - 0.4986 * z;
+            let gLinear = -0.9689 * x + 1.8758 * y + 0.0415 * z;
+            let bLinear =  0.0557 * x - 0.2040 * y + 1.0570 * z;
+
+            // Gamma Correction
+            let r = gammaCorrect(rLinear);
+            let g = gammaCorrect(gLinear);
+            let b = gammaCorrect(bLinear);
+
+            // Clamp 0..255
+            r = Math.min(255, Math.max(0, Math.round(r * 255)));
+            g = Math.min(255, Math.max(0, Math.round(g * 255)));
+            b = Math.min(255, Math.max(0, Math.round(b * 255)));
+
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function gammaCorrect(c) {
+            if (c <= 0.0031308) {
+                return 12.92 * c;
+            } else {
+                return 1.055 * Math.pow(c, 1.0 / 2.4) - 0.055;
+            }
+        }
+
+        // --------------------------------------------------------------------------
+        // ACTUALIZACIÓN DE INTERFAZ & CLASIFICACIÓN
+        // --------------------------------------------------------------------------
+
+        function renderResults(res) {
+            // Unidades CIELAB
+            valL.textContent = res.L.toFixed(2);
+            valA.textContent = (res.a >= 0 ? '+' : '') + res.a.toFixed(2);
+            valB.textContent = (res.b >= 0 ? '+' : '') + res.b.toFixed(2);
+            valC.textContent = res.C.toFixed(2);
+            valH.textContent = res.hDeg.toFixed(1) + '°';
+
+            // Parámetros Clásicos
+            valIC.textContent = res.IC.toFixed(3);
+            valMatiz.textContent = res.matiz.toFixed(2);
+            valXYZ.textContent = `X: ${res.X.toFixed(1)} | Y: ${res.Y.toFixed(1)} | Z: ${res.Z.toFixed(1)}`;
+
+            // Barra de Composición %
+            barYellow.style.width = `${res.pctYellow.toFixed(1)}%`;
+            barRed.style.width = `${res.pctRed.toFixed(1)}%`;
+            barBlue.style.width = `${res.pctBlue.toFixed(1)}%`;
+            compLabel.textContent = `${res.pctYellow.toFixed(0)}% Amar / ${res.pctRed.toFixed(0)}% Roj / ${res.pctBlue.toFixed(0)}% Azul`;
+
+            // Muestra de color sRGB
+            colorPreviewBox.style.backgroundColor = res.rgbHex;
+            colorHexLabel.textContent = res.rgbHex.toUpperCase();
+            colorHexLabel.classList.remove('opacity-0');
+
+            // Determinar Categoría Enológica
+            determineINVCategory(res);
+        }
+
+        function determineINVCategory(res) {
+            // Criterios combinados L*, a*, b* e Intensidad Colorante (IC)
+            let category = "";
+            let badgeClass = "";
+            let description = "";
+
+            if (res.IC < 0.35 && res.a < 4.0) {
+                // VINO BLANCO
+                category = "Vino Blanco Genuino";
+                badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+                description = "Luminosidad elevada (L* > 85) con componente rojo (a*) prácticamente nula. Clasifica formalmente como Vino Blanco ante el INV.";
+            } 
+            else if (res.IC >= 0.30 && res.IC <= 1.80 && res.a >= 3.0 && res.a <= 28.0) {
+                // VINO ROSADO
+                if (res.b > 18.0 && res.matiz > 0.95) {
+                    category = "Vino Rosado (Matiz Piel de Cebolla / Salmón)";
+                    badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+                    description = "Cromatismo rosado con perfil ambarino/dorado (aporte de Moscatel / Criolla). Apto para ser catalogado y certificado como Vino Rosado según normativas de libre circulación.";
+                } else {
+                    category = "Vino Rosado (Rubí / Pálido)";
+                    badgeClass = "bg-pink-100 text-pink-800 border-pink-300";
+                    description = "Aporte definido de antocianos rojos (520 nm) con luminosidad media-alta. Encuadra perfectamente en la categoría analítica de Vino Rosado.";
+                }
+            } 
+            else if (res.IC > 1.80 && res.L < 55.0) {
+                // VINO TINTO
+                category = "Vino Tinto";
+                badgeClass = "bg-purple-900 text-white border-purple-950";
+                description = "Alta densidad polifenólica e intensidad colorante (IC > 1.8). Supera los límites cromáticos para rosados, clasificando analíticamente como Vino Tinto.";
+            } 
+            else if (res.b > 20.0 && res.a > 8.0 && res.matiz > 1.1) {
+                // CANDIDATO A VINO NARANJO / MACERADO
+                category = "Vino Naranjo / Macerado (Base Rosado/Blanco)";
+                badgeClass = "bg-orange-100 text-orange-800 border-orange-300";
+                description = "Perfil cromático con elevada presencia de tonos amarillos/dorados (b*) derivados de fermentación prolongada con hollejos. Administrativamente se inscribe según su coordenada como Vino Rosado o Blanco con mención especial.";
+            } 
+            else {
+                // CATEGORÍA INTERMEDIA / ROSADO INTENSO
+                category = "Vino Rosado Intenso / Clarete";
+                badgeClass = "bg-rose-200 text-rose-900 border-rose-400";
+                description = "Ubicado en el umbral entre rosado y tinto. Mantiene valores de transmisión sufientes para ser inscripto como Vino Rosado de alta intensidad.";
+            }
+
+            invCategoryBadge.textContent = category;
+            invCategoryBadge.className = `inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-bold border ${badgeClass}`;
+            invCategoryDescription.textContent = description;
+        }
+
+        function resetResults() {
+            valL.textContent = '--';
+            valA.textContent = '--';
+            valB.textContent = '--';
+            valC.textContent = '--';
+            valH.textContent = '--';
+
+            valIC.textContent = '--';
+            valMatiz.textContent = '--';
+            valXYZ.textContent = 'X: -- | Y: -- | Z: --';
+
+            barYellow.style.width = '33.3%';
+            barRed.style.width = '33.3%';
+            barBlue.style.width = '33.4%';
+            compLabel.textContent = '0% Amar / 0% Roj / 0% Azul';
+
+            colorPreviewBox.style.backgroundColor = '#f1f5f9';
+            colorHexLabel.classList.add('opacity-0');
+
+            invCategoryBadge.textContent = 'Sin datos suficientes';
+            invCategoryBadge.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-700 border border-slate-200';
+            invCategoryDescription.textContent = 'Ingrese o seleccione una serie espectral válida de transmitancia o absorbancia entre 380 nm y 780 nm para calcular la clasificación oficial.';
+            dataPointsCount.textContent = '0 puntos cargados';
+        }
+    </script>
+</body>
+</html>
